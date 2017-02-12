@@ -1,0 +1,21 @@
+{% extends "templates/base.nunjs" %}
+
+{% block body_content %}
+<div class="page-wrapper">
+   {% include "sections/home/hero.nunjs" %}
+   {% include "sections/home/email-main.nunjs" %}
+   {% include "sections/home/awards.nunjs" %}
+   {% include "sections/home/gallery.nunjs" %}
+   {% include "sections/home/description.nunjs" %}
+   {% include "sections/home/developers.nunjs" %}
+   {% include "sections/footer.nunjs" %}
+</div>
+
+{% include "sections/home/yt-modal.nunjs" %}
+
+{% endblock %}
+
+
+{% block footer_scripts %}
+<script src="{{ 'js/app.js' | asset }}"></script>
+{% endblock %}

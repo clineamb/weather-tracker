@@ -2,18 +2,21 @@ var express         = require('express')
 ,   bodyParser      = require('body-parser')
 ,   path            = require('path')
 ,   logger          = require('morgan')
+,   nunjs           = require('./libs/nunjucks')
 //  APP SPECS
 ,   router          = require('./routes')
 ,   app             = express()
 ;
 
 // view engine setup
-// app.set('views', path.join(__dirname, "views"));
-// app.set('view engine', "html");
+app.set('views', path.join(__dirname, "views"));
+app.set('view engine', "nunjs"); // .nunjs
+
+nunjs(app); // init
 
 app.use(logger('dev'));
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 //  Quick middleware things
