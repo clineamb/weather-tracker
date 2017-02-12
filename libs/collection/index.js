@@ -8,23 +8,29 @@ var moment  = require('moment')
 
 var Collection = function() {
     this.collection = [];
+    this.indexes = [];
+
     debug(">> Collection initialized...");
 }
 
+Collection.prototype.exists = function(timestamp) {
+    // TODO: check if proper timestamp here.
+    return !_.isUndefined(this.indexes[timestamp]);
+};
+
 Collection.prototype.addEntry = function(timestamp, fields) { 
-    if(_.isObject(timestamp)) {
-        var temp = timestamp['timestamp'];
-        _.unset(fields, 'timestamp');
-        timestamp = temp;
-    }
 
     //  Her code will always report the time accurately
     this.collection.push({
         'timestamp':    timestamp,
         'fields':       new Metrics(fields)
-    })
+    });
 
-    return this;
+    //  *Should* remain parallel to collection, but need this for exists
+    //  FIXME: has to be something more efficient.
+    this.indexes.push(timestamp);
+
+    return true;
 };
 
 Collection.prototype.getByTimestamp = function(timestamp) {
@@ -34,7 +40,7 @@ Collection.prototype.getByTimestamp = function(timestamp) {
 
 Collection.prototype.toJSON = function() {
     return _.map(this.collection, function(item) {
-        item = item.fields.toJSON();
+        item.fields = item.fields.toJSON();
         return item;
     });
 };

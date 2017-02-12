@@ -9,10 +9,13 @@ module.exports = {
     addMeasurement: function(req, res, next) {
         var fields = req.body;
 
-        coll.addEntry(fields);
+        if(!coll.addEntry(fields.timestamp, _.omit(fields, 'timestamp'))) { // sends through true if OK
+            return res.sendStatus(400);
+        }
 
-        debug(">> collection", coll);
+        debug(">> collection", coll.toJSON());
 
-        res.json({});
+        res.append("Location", "/measurements/"+fields.timestamp);
+        res.sendStatus(201);
     }
 };

@@ -12,10 +12,11 @@ MetricsModel = function(value_obj) {
     }
 };
 
-MetricsModel.prototype.validate = function(value) {
-    
+MetricsModel.validate = function(value) {
+
     if(_.isObject(value)) {
         _.each(value, function(v) {
+            console.log(typeof v);
             if(!_.isNumber(v)) {
                 return false; // one metric is not good, reject whole thing.
             }
@@ -23,7 +24,8 @@ MetricsModel.prototype.validate = function(value) {
     }
 
     return _.isNumber(value);
-}
+};
+
 
 MetricsModel.prototype.set = function(name, val) {
 
@@ -43,6 +45,10 @@ MetricsModel.prototype.get = function(name) {
     }
 
     return fields[name];
-}
+};
+
+MetricsModel.prototype.toJSON = function() {
+    return this.fields;
+};
 
 module.exports = MetricsModel;
