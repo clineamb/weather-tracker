@@ -8,6 +8,13 @@ var coll    = require('../collection')
 ,   VALID_DAY_FORMAT = "YYYY-MM-DD"
 ;
 
+// FOR QUICK & DIRTY TESTING
+
+coll.addEntry("2015-09-01T16:00:00.000Z", { 'temperature': '11.2', 'dewPoint': '16.7', 'precipitation': 0 });
+coll.addEntry("2015-09-01T16:00:00.001Z", { 'temperature': '11.2', 'dewPoint': '16.7', 'precipitation': 1 });
+coll.addEntry("2015-09-01T16:00:00.002Z", { 'temperature': '11.2', 'dewPoint': '16.7', 'precipitation': 2 });
+coll.addEntry("2015-09-01T16:00:00.003Z", { 'temperature': '11.2', 'dewPoint': '16.7', 'precipitation': 3 });
+
 //  ========== ROUTE LOGIC
 
 module.exports = {
@@ -73,6 +80,10 @@ module.exports = {
         ,   validated = validateBody(req.body)
         ;
 
+        if(!coll.timestampExists(ts)) {
+            return res.sendStatus(404);
+        }
+
         if(!ts && !ts_body) {
             return res.sendStatus(400); // need both timestamps
         }
@@ -81,7 +92,7 @@ module.exports = {
             return res.sendStatus(404);
         }
 
-        if(ts === ts_body) { // FIXME: maybe compare MOMENT?
+        if( ts !== ts_body) { // FIXME: maybe compare MOMENT?
             return res.sendStatus(409);
         }
 
@@ -90,7 +101,10 @@ module.exports = {
             return res.sendStatus(400);
         }
 
-        coll.updateByTimestamp(ts, validate.parsed_body);
+        if(!coll.updateByTimestamp(ts, validated.parsed_body)) {
+            return res.sendStatus(404); // dne
+        }
+
         return res.sendStatus(204);
     }
 };
@@ -100,7 +114,7 @@ module.exports = {
 
 function isValidDate(dateStr) {
     var regEx = /^\d{4}-\d{2}-\d{2}$/;
-    return dateStr.match(regEx) != null && moment(ts, VALID_DAY_FORMAT).isValid();
+    return dateStr.match(regEx) != null && moment(dateStr, VALID_DAY_FORMAT).isValid();
 }
 
 function isValidTimestamp(ts) {

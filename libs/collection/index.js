@@ -14,11 +14,15 @@ Item = function(ts, metrics) {
     this.fields = metrics;
 }
 
+Item.prototype.set = function(input) {
+    this.fields.set(input);
+    return this;
+}
+
 Item.prototype.toJSON = function() {
-    return {
+    return _.extend({
         'timestamp':    this.timestamp,
-        'fields':       this.fields.toJSON()
-    };
+    }, this.fields.toJSON());
 };
 
 // COLLECTION
@@ -26,6 +30,7 @@ Item.prototype.toJSON = function() {
 Collection = function() {
     this.collection = [];
     this.indexes = [];
+
     debug(">> Collection initialized...");
 }
 
@@ -34,10 +39,16 @@ Collection.prototype.addEntry = function(timestamp, fields) {
     //  Her code will always report the time accurately
     this.collection.push(new Item(timestamp, new Metrics(fields)));
     this.collection = _.uniqBy(this.collection, 'timestamp');
-    this.indexes.push(timestamp);
+    this.indexes = _.mapValues(this.collection, function(i) {
+        return i.timestamp;
+    });
 
     return this;
 };
+
+Collection.prototype.timestampExists = function(timestamp) {
+    return (_.indexOf(this.collection, timestamp) > -1);
+}
 
 Collection.prototype.getAllByDay = function(day) {
    var groups = _.groupBy(this.collection, 'day');
@@ -50,10 +61,17 @@ Collection.prototype.getByTimestamp = function(timestamp) {
 
 // this could work for both PUT and PATCH
 Collection.prototype.updateByTimestamp = function(timestamp, fields) {
-    var index = _.indexOf(this.indexes, timestamp);
-    this.collection[index] = _.extend(this.collection[index], fields);
 
-    return this;
+    var index = _.indexOf(this.indexes, timestamp);
+
+    if(index < 0) {
+        return false;
+    }
+
+    debug(">> coll#updateByTimestamp", index, this.collection[index]);
+    this.collection[index].set(fields);
+
+    return true;
 };
 
 Collection.prototype.toJSON = function() {

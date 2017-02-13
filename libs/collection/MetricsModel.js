@@ -16,9 +16,11 @@ MetricsModel = function(value_obj) {
 MetricsModel.prototype.set = function(name, val) {
 
     if(_.isObject(name)) {
-        this.fields = _.extend(this.fields, name);
+        this.fields = _.extend(this.fields, _.mapValues(name, function(v) {
+            return parseFloat(v);
+        }));
     } else {
-        this[name] = val;
+        this[name] = parseFloat(val);
     }
 
     return this;
