@@ -74,7 +74,6 @@ module.exports = {
             if(item.length <= 0) {
                 return res.sendStatus(404);
             }
-
         }
 
         res.type('json');
@@ -131,16 +130,13 @@ module.exports = {
         if(_.isString(query.stat))  {   query.stat = [query.stat];      }
         if(_.isString(query.metric)) {  query.metric = [query.metric];  }
 
-           
-
         _.each(query.metric, function(mt) {
             _.each(query.stat, function(st) {
                 stats.push(calculateStat(st, mt, filtered));
             })
         })
 
-        stats = _.compact(stats);
-
+        stats = _.compact(stats); // because stats.push will push nulls into it...
         return res.json(stats);
     }
 };
