@@ -35,13 +35,21 @@ module.exports = {
         res.sendStatus(201);
     },
 
+    deleteMeasurement: function(req, res, next) {
+        var ts = req.params.timestamp;
+
+        if(!coll.timestampExists(ts)) {
+            return res.sendStatus(404);
+        }
+
+        coll.deleteEntry(ts);
+        res.sendStatus(204);
+    },
+
     getMeasurement: function(req, res, next) {
         var ts = req.params.timestamp
         ,   item
         ;
-
-        debug(">> getMeasurement", moment(ts, VALID_TS_FORMAT).isValid());
-        debug(">> getMeasurement", moment(ts, VALID_DAY_FORMAT).isValid());
 
         //  check the timestamp, if it has the right format, get specifics
         //  Let's just check the string for the pieces
@@ -64,10 +72,6 @@ module.exports = {
                 return res.sendStatus(404);
             }
 
-        } else {
-            // bad request because not valid ts
-            // FIXME: but send 404 instead to be consistent?
-            return res.sendStatus(404);
         }
 
         res.type('json');

@@ -36,9 +36,7 @@ router.route("/measurements/:timestamp")
     .get(weather.getMeasurement)    //  Feature: Get a measurement
     .put(weather.updateMeasurement) //  Feature: Update measurement
     .patch(weather.updateMeasurement)
-    .delete(function(req, res) {
-
-    })
+    .delete(weather.deleteMeasurement)
 ;
 
 router.route("/stats")

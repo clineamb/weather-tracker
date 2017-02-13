@@ -29,26 +29,26 @@ Item.prototype.toJSON = function() {
 
 Collection = function() {
     this.collection = [];
-    this.indexes = [];
+    this.indexes = {};
 
     debug(">> Collection initialized...");
 }
 
 Collection.prototype.addEntry = function(timestamp, fields) {
 
-    //  Her code will always report the time accurately
     this.collection.push(new Item(timestamp, new Metrics(fields)));
-    this.collection = _.uniqBy(this.collection, 'timestamp');
-    this.indexes = _.mapValues(this.collection, function(i) {
-        return i.timestamp;
-    });
+    this.indexes[timestamp] = this.collection.length - 1; 
 
     return this;
 };
 
-Collection.prototype.timestampExists = function(timestamp) {
-    return (_.indexOf(this.collection, timestamp) > -1);
-}
+Collection.prototype.deleteEntry = function(timestamp) {
+    var index = this.indexes[timestamp];
+    _.pullAt(this.collection, index);
+    _.unset(this.indexes, timestamp);
+
+    return this;
+};
 
 Collection.prototype.getAllByDay = function(day) {
    var groups = _.groupBy(this.collection, 'day');
@@ -57,6 +57,11 @@ Collection.prototype.getAllByDay = function(day) {
 
 Collection.prototype.getByTimestamp = function(timestamp) {
     return _.find(this.collection, { 'timestamp': timestamp });
+};
+
+Collection.prototype.timestampExists = function(timestamp) {
+    console.log(this.indexes[timestamp]);
+    return !_.isUndefined(this.indexes[timestamp]);
 };
 
 // this could work for both PUT and PATCH
