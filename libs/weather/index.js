@@ -7,9 +7,9 @@ var coll    = require('../collection')
 
 module.exports = {
     addMeasurement: function(req, res, next) {
-        var fields = req.body;
+        var fields = _.omit(fields, 'timestamp')
 
-        if(!coll.addEntry(fields.timestamp, _.omit(fields, 'timestamp'))) { // sends through true if OK
+        if(!coll.addEntry(fields.timestamp, fields)) { // sends through true if OK
             return res.sendStatus(400);
         }
 

@@ -20,6 +20,10 @@ Collection.prototype.exists = function(timestamp) {
 
 Collection.prototype.addEntry = function(timestamp, fields) { 
 
+    if(!Metrics.validate(fields)) {
+        return false;
+    }
+
     //  Her code will always report the time accurately
     this.collection.push({
         'timestamp':    timestamp,
