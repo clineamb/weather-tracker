@@ -127,17 +127,17 @@ module.exports = {
             return res.json([])
         }
 
-        // if only one stat
-        if(_.isString(query.stat)) {
+        // if only one stat/metric, make an array
+        if(_.isString(query.stat))  {   query.stat = [query.stat];      }
+        if(_.isString(query.metric)) {  query.metric = [query.metric];  }
 
-            stats.push(calculateStat(query.stat, query.metric, filtered));
+           
 
-        // array of stats
-        } else if(_.isArray(query.stat)) {
-            stats = _.map(query.stat, function(st) {
-                return calculateStat(st, query.metric, filtered);
+        _.each(query.metric, function(mt) {
+            _.each(query.stat, function(st) {
+                stats.push(calculateStat(st, mt, filtered));
             })
-        }
+        })
 
         stats = _.compact(stats);
 
@@ -158,34 +158,42 @@ function calculateStat(stat, metric, fcoll) {
         'metric': metric,
         'stat': stat,
         'value': null
-    };
+    },  count = 0;
 
 
     fcoll.each(function(item) {
+        // debug(">> calculateStat", item.get(metric));
 
-        if(ret.value === null) {
-            ret.value = item.get(metric);
-        } else {
-            switch(stat) {
-                case 'min':
-                   if(item.get(metric) < ret.value) {
-                        ret.value = item.get(metric);
-                    }
-                break;
-                case 'max':
-                    if(item.get(metric) >= ret.value) {
-                        ret.value = item.get(metric);
-                    }
-                break;
-                case 'average':
-                    ret.value = ret.value + item.get(metric);
-                break;
+        if(item.get(metric)) {
+            if(ret.value === null) {
+                ret.value = item.get(metric);
+            } else {
+                switch(stat) {
+                    case 'min':
+                       if(item.get(metric) < ret.value) {
+                            ret.value = item.get(metric);
+                        }
+                    break;
+                    case 'max':
+                        if(item.get(metric) >= ret.value) {
+                            ret.value = item.get(metric);
+                        }
+                    break;
+                    case 'average':
+                        ret.value = ret.value + item.get(metric);
+                    break;
+                }
             }
+            count++; // need to not use fcoll.getLength() b/c measurement may not have stat
         }
     });
 
     if(stat === 'average') {
-        ret.value = parseFloat((ret.value / fcoll.getLength()).toFixed(1));
+        ret.value = parseFloat((ret.value / count).toFixed(1));
+    }
+
+    if(count <= 0) { // stat didn't exist...
+        return null;
     }
 
     return ret;
