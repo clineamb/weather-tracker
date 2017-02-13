@@ -7,15 +7,31 @@ var coll    = require('../collection')
 
 module.exports = {
     addMeasurement: function(req, res, next) {
-        var fields = _.omit(fields, 'timestamp')
+        var timestamp = req.body.timestamp
+        ,   fields = {}
+        ,   valid = true
+        ;
 
-        if(!coll.addEntry(fields.timestamp, fields)) { // sends through true if OK
+        _.each(req.body, function(v, key) {
+            if(key !== 'timestamp' && isNaN(parseFloat(v))) {
+                valid = false;
+                return valid;
+            }
+
+            // this should "remove" timestamp w/o modifying req.body
+            fields[key] = parseFloat(v); // update to float
+        })
+    
+
+        if(!valid) { // need a flag because lodash loops/awkward "already sent headers"
             return res.sendStatus(400);
         }
 
+        coll.addEntry(timestamp, fields); // returns coll.
         debug(">> collection", coll.toJSON());
 
         res.append("Location", "/measurements/"+fields.timestamp);
+        res.type('json');
         res.sendStatus(201);
     }
 };

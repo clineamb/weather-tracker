@@ -1,5 +1,7 @@
 var express     = require('express')
 ,   router      = express.Router()
+,   _       = require('lodash')
+,   debug   = require('debug')('api:routes')
 ,   weather     = require('../libs/weather')
 ;
 
@@ -8,11 +10,10 @@ function sendBlankJson(req, res) {
 }
 
 function checkForTimestamp(req, res, next) {
-    if(!req.body) {
-        return res.sendStatus(400);
-    }
 
-    if(!req.body.timestamp) {
+    debug("req.body", req.body);
+
+    if(_.isUndefined(req.body.timestamp)) {
         return res.sendStatus(400);
     }
 

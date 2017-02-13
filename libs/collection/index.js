@@ -18,11 +18,7 @@ Collection.prototype.exists = function(timestamp) {
     return !_.isUndefined(this.indexes[timestamp]);
 };
 
-Collection.prototype.addEntry = function(timestamp, fields) { 
-
-    if(!Metrics.validate(fields)) {
-        return false;
-    }
+Collection.prototype.addEntry = function(timestamp, fields) {
 
     //  Her code will always report the time accurately
     this.collection.push({
@@ -31,10 +27,10 @@ Collection.prototype.addEntry = function(timestamp, fields) {
     });
 
     //  *Should* remain parallel to collection, but need this for exists
-    //  FIXME: has to be something more efficient.
+    //  FIXME: has to be something more efficient?
     this.indexes.push(timestamp);
 
-    return true;
+    return this;
 };
 
 Collection.prototype.getByTimestamp = function(timestamp) {
@@ -44,8 +40,11 @@ Collection.prototype.getByTimestamp = function(timestamp) {
 
 Collection.prototype.toJSON = function() {
     return _.map(this.collection, function(item) {
-        item.fields = item.fields.toJSON();
-        return item;
+        // try not to modify olriginal collection
+        return {
+            'timestamp': item.timesamp,
+            'fields': item.fields.toJSON()
+        };
     });
 };
 
