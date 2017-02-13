@@ -35,10 +35,7 @@ router.route("/measurements")
 
 router.route("/measurements/:timestamp")
     //  Feature: get a measurement
-    .get(function(req, res) {
-        // Can be a full timestamp
-        // or just a day (return array of measurements)
-    })
+    .get(weather.getMeasurement)
     .put(function(req, res) {
 
     })
