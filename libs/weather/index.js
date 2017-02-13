@@ -10,15 +10,17 @@ var coll    = require('../collection')
 
 // FOR QUICK & DIRTY TESTING
 
-coll.addEntry("2015-09-01T16:00:00.000Z", { 'temperature': '11.2', 'dewPoint': '16.7', 'precipitation': 0 });
-coll.addEntry("2015-09-01T16:00:00.001Z", { 'temperature': '11.2', 'dewPoint': '16.7', 'precipitation': 1 });
-coll.addEntry("2015-09-01T16:00:00.002Z", { 'temperature': '11.2', 'dewPoint': '16.7', 'precipitation': 2 });
-coll.addEntry("2015-09-01T16:00:00.003Z", { 'temperature': '11.2', 'dewPoint': '16.7', 'precipitation': 3 });
+coll.addEntry("2015-09-01T16:00:00.000Z", { 'temperature': '27.1', 'dewPoint': '16.9' });
+coll.addEntry("2015-09-01T16:10:00.000Z", { 'temperature': '27.3' });
+coll.addEntry("2015-09-01T16:20:00.000Z", { 'temperature': '27.5', 'dewPoint': '17.1' });
+coll.addEntry("2015-09-01T16:30:00.000Z", { 'temperature': '27.4', 'dewPoint': '17.3' });
+coll.addEntry("2015-09-01T16:40:00.000Z", { 'temperature': '27.2' });
+coll.addEntry("2015-09-01T17:00:00.000Z", { 'temperature': '28.1', 'dewPoint': '18.3' });
 
 //  ========== ROUTE LOGIC
 
 module.exports = {
-    addMeasurement: function(req, res, next) {
+    'addMeasurement': function(req, res, next) {
         var timestamp = req.body.timestamp
         ,   validated = validateBody(req.body)
         ;
@@ -35,7 +37,7 @@ module.exports = {
         res.sendStatus(201);
     },
 
-    deleteMeasurement: function(req, res, next) {
+    'deleteMeasurement': function(req, res, next) {
         var ts = req.params.timestamp;
 
         if(!coll.timestampExists(ts)) {
@@ -46,7 +48,7 @@ module.exports = {
         res.sendStatus(204);
     },
 
-    getMeasurement: function(req, res, next) {
+    'getMeasurement': function(req, res, next) {
         var ts = req.params.timestamp
         ,   item
         ;
@@ -78,7 +80,7 @@ module.exports = {
         return res.json(item);
     },
 
-    updateMeasurement: function(req, res, next) {
+    'updateMeasurement': function(req, res, next) {
         var ts        = req.params.timestamp
         ,   ts_body   = req.body.timestamp
         ,   validated = validateBody(req.body)
@@ -110,6 +112,9 @@ module.exports = {
         }
 
         return res.sendStatus(204);
+    },
+    stats: {
+        
     }
 };
 
@@ -132,7 +137,10 @@ function validateBody(body) {
 
     _.each(body, function(v, key) {
         if(key !== 'timestamp') {
-            if(isNaN(parseFloat(v))) {
+
+            if(v.length === 0) {
+                fields[key] = 0;
+            } else if(isNaN(parseFloat(v))) {
                 valid = false;
                 return valid;
             }

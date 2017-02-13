@@ -59,6 +59,10 @@ Collection.prototype.getByTimestamp = function(timestamp) {
     return _.find(this.collection, { 'timestamp': timestamp });
 };
 
+Collection.prototype.getDateRange = function(ts1, ts2) {
+    
+};
+
 Collection.prototype.timestampExists = function(timestamp) {
     console.log(this.indexes[timestamp]);
     return !_.isUndefined(this.indexes[timestamp]);
