@@ -13,30 +13,40 @@ function isValidDate(dateString) {
     return dateString.match(regEx) != null;
 }
 
+function validateBody(body) {
+    var fields = {}
+    ,   valid = true
+    ;
+
+    _.each(body, function(v, key) {
+        if(key !== 'timestamp') {
+            if(isNaN(parseFloat(v))) {
+                valid = false;
+                return valid;
+            }
+
+            // this should "remove" timestamp w/o modifying req.body
+            fields[key] = parseFloat(v); // update to float
+        }
+    })
+
+    return {
+        'is_valid': valid,
+        'parsed_body': fields
+    }
+}
+
 module.exports = {
     addMeasurement: function(req, res, next) {
         var timestamp = req.body.timestamp
-        ,   fields = {}
-        ,   valid = true
+        ,   validated = validateBody(req.body)
         ;
-
-        _.each(req.body, function(v, key) {
-            if(key !== 'timestamp') {
-                if(isNaN(parseFloat(v))) {
-                    valid = false;
-                    return valid;
-                }
-
-                // this should "remove" timestamp w/o modifying req.body
-                fields[key] = parseFloat(v); // update to float
-            }
-        })
     
-        if(!valid) { // need a flag because lodash loops/awkward "already sent headers"
+        if(!validated.is_valid) { // need a flag because lodash loops/awkward "already sent headers"
             return res.sendStatus(400);
         }
 
-        coll.addEntry(timestamp, fields); // returns coll.
+        coll.addEntry(timestamp, validated.parsed_body); // returns coll.
         debug(">> collection", coll.toJSON());
 
         res.append("Location", "/measurements/"+req.body.timestamp);
@@ -66,6 +76,10 @@ module.exports = {
         } else if(moment(ts, VALID_DAY_FORMAT).isValid() && isValidDate(ts) ) {
             // map to json already because we're just sending it through
             item = _.map(coll.getAllByDay(ts), function(i) { return i.toJSON() });
+
+            if(item.length <= 0) {
+                return res.sendStatus(404);
+            }
 
         } else {
             // bad request because not valid ts

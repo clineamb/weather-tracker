@@ -37,7 +37,7 @@ Collection.prototype.addEntry = function(timestamp, fields) {
 
     //  Her code will always report the time accurately
     this.collection.push(new Item(timestamp, new Metrics(fields)));
-    this.collection = _.uniqBy(this.collection, 'timestamp');
+    // this.collection = _.uniqBy(this.collection, 'timestamp');
 
     return this;
 };
