@@ -10,7 +10,6 @@ app.set('host', process.env.HOST || null);
 server = app.listen(app.get('port'), app.set('host'), function() {
     console.log(
         "\n=============================================",
-        "\n>>   grace-happer.c1-code-challenge",
         "\n>>   EXPRESS STARTED.", Date.now() + " UTC",
         "\n>>   HOST: ", (app.get('host') ? app.get('host') : "localhost"),
         "\n>>   PORT:", app.get('port'),
