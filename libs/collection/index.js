@@ -55,7 +55,8 @@ Collection.prototype.addEntry = function(timestamp, fields) {
 
     this.collection.push(new Item(timestamp, new Metrics(fields)));
     this.indexes[timestamp] = this.collection.length - 1;
-    this.length = this.collection.length; 
+
+    debug(">> coll#addEntry indexes", this.indexes); 
 
     return this;
 };
@@ -115,16 +116,17 @@ Collection.prototype.getLength = function() {
 };
 
 Collection.prototype.timestampExists = function(timestamp) {
-    console.log(this.indexes[timestamp]);
+
+    debug(">> coll#timestampExists", this.indexes[timestamp], "undefined?", _.isUndefined(this.indexes[timestamp]));
     return !_.isUndefined(this.indexes[timestamp]);
 };
 
 // this could work for both PUT and PATCH
 Collection.prototype.updateByTimestamp = function(timestamp, fields) {
 
-    var index = _.indexOf(this.indexes, timestamp);
+    var index = this.indexes[timestamp];
 
-    if(index < 0) {
+    if(index < 0 || _.isUndefined(index)) {
         return false;
     }
 

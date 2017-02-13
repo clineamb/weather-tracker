@@ -9,14 +9,12 @@ var coll    = require('../collection')
 ;
 
 // FOR QUICK & DIRTY TESTING
-
-coll.addEntry("2015-09-01T16:00:00.000Z", validateBody({ 'temperature': '27.1', 'dewPoint': '16.9' }).parsed_body);
-coll.addEntry("2015-09-01T16:10:00.000Z", validateBody({ 'temperature': '27.3' }).parsed_body);
-
-coll.addEntry("2015-09-01T16:20:00.000Z", validateBody({ 'temperature': '27.5', 'dewPoint': '17.1' }).parsed_body);
-coll.addEntry("2015-09-01T16:30:00.000Z", validateBody({ 'temperature': '27.4', 'dewPoint': '17.3' }).parsed_body);
-coll.addEntry("2015-09-01T16:40:00.000Z", validateBody({ 'temperature': '27.2' }).parsed_body);
-coll.addEntry("2015-09-01T17:00:00.000Z", validateBody({ 'temperature': '28.1', 'dewPoint': '18.3' }).parsed_body);
+// coll.addEntry("2015-09-01T16:00:00.000Z", validateBody({ 'temperature': '27.1', 'dewPoint': '16.9' }).parsed_body);
+// coll.addEntry("2015-09-01T16:10:00.000Z", validateBody({ 'temperature': '27.3' }).parsed_body);
+// coll.addEntry("2015-09-01T16:20:00.000Z", validateBody({ 'temperature': '27.5', 'dewPoint': '17.1' }).parsed_body);
+// coll.addEntry("2015-09-01T16:30:00.000Z", validateBody({ 'temperature': '27.4', 'dewPoint': '17.3' }).parsed_body);
+// coll.addEntry("2015-09-01T16:40:00.000Z", validateBody({ 'temperature': '27.2' }).parsed_body);
+// coll.addEntry("2015-09-01T17:00:00.000Z", validateBody({ 'temperature': '28.1', 'dewPoint': '18.3' }).parsed_body);
 
 //  ========== ROUTE LOGIC
 
@@ -86,24 +84,29 @@ module.exports = {
         ,   validated = validateBody(req.body)
         ;
 
-        if(!coll.timestampExists(ts)) {
+        if(coll.timestampExists(ts) === false) { // bc 0?
+            debug(">> weather#timestamp dne", ts, coll.timestampExists(ts))
             return res.sendStatus(404);
         }
 
         if(!ts && !ts_body) {
+            debug(">> weather#timestamp ts undefined", ts, ts_body)
             return res.sendStatus(400); // need both timestamps
         }
 
         if(!isValidTimestamp(ts) || !isValidTimestamp(ts_body)) {
+            debug(">> weather#timestamp invalid ts", ts, ts_body)
             return res.sendStatus(404);
         }
 
         if( ts !== ts_body) { // FIXME: maybe compare MOMENT?
+            debug(">> weather#timestamp mismatch", ts)
             return res.sendStatus(409);
         }
 
         // now validate the rest of the body...
         if(!validated.is_valid) {
+            debug(">> weather#timestamp body invalid")
             return res.sendStatus(400);
         }
 
