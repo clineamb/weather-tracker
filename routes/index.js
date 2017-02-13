@@ -40,11 +40,7 @@ router.route("/measurements/:timestamp")
 ;
 
 router.route("/stats")
-    .get(function(req, res) {
-        //  can have query params
-        debug(">> stat params", req.query);
-        //  stat, metric, fromDatetime, toDatetime
-        res.send(200);
-    })
+    .get(weather.getStats)
+;
 
 module.exports = router;

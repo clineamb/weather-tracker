@@ -17,6 +17,10 @@ Item = function(ts, metrics) {
 Item.prototype.set = function(input) {
     this.fields.set(input);
     return this;
+};
+
+Item.prototype.get = function(input) {
+    return this.fields.get(input);
 }
 
 Item.prototype.toJSON = function() {
@@ -34,10 +38,24 @@ Collection = function() {
     debug(">> Collection initialized...");
 }
 
+// comes from _.filter/_.map that need to be a Collection
+Collection.prototype.import = function(array_of_items) {
+    var indexes = this.indexes;
+
+    this.collection = array_of_items;
+
+    _.each(this.collection, function(item, index) {
+        indexes[item.timestamp] = index; 
+    });
+
+    return this;
+};
+
 Collection.prototype.addEntry = function(timestamp, fields) {
 
     this.collection.push(new Item(timestamp, new Metrics(fields)));
-    this.indexes[timestamp] = this.collection.length - 1; 
+    this.indexes[timestamp] = this.collection.length - 1;
+    this.length = this.collection.length; 
 
     return this;
 };
@@ -46,6 +64,14 @@ Collection.prototype.deleteEntry = function(timestamp) {
     var index = this.indexes[timestamp];
     _.pullAt(this.collection, index);
     _.unset(this.indexes, timestamp);
+
+    return this;
+};
+
+Collection.prototype.each = function(iteratee) {
+    _.each(this.collection, function(item, index, list) {
+        iteratee(item, item.timestamp, list);
+    });
 
     return this;
 };
@@ -60,7 +86,32 @@ Collection.prototype.getByTimestamp = function(timestamp) {
 };
 
 Collection.prototype.getDateRange = function(ts1, ts2) {
-    
+    var mts1 = moment(ts1)
+    ,   mts2 = moment(ts2)
+    ,   filtered
+    ;
+
+   
+    filtered = new Collection();
+
+    filtered = filtered.import(_.filter(this.collection, function(item, index) {
+        var im = moment(item.timestamp);
+
+        debug(">> coll#getDateRange", index, im.isBetween(mts1, mts2, null, '[]'));
+
+        if(im.isBetween(mts1, mts2, null, '[)')) {
+            return item;
+        }
+    }));
+
+    debug(">> coll#getDateRange", filtered.toJSON());
+
+    return filtered;
+};
+
+Collection.prototype.getLength = function() {
+    this.length = this.collection.length;
+    return this.collection.length;
 };
 
 Collection.prototype.timestampExists = function(timestamp) {
@@ -89,4 +140,4 @@ Collection.prototype.toJSON = function() {
     });
 };
 
-module.exports = new Collection();
+module.exports = new Collection(); // init collection

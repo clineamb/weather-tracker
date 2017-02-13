@@ -16,9 +16,11 @@ MetricsModel = function(value_obj) {
 MetricsModel.prototype.set = function(name, val) {
 
     if(_.isObject(name)) {
-        this.fields = _.extend(this.fields, _.mapValues(name, function(v) {
-            return parseFloat(v);
-        }));
+        _.each(name, function(v, key) {
+            name[key] = parseFloat(v);
+        });
+
+        this.fields = _.extend(this.fields, name);
     } else {
         this[name] = parseFloat(val);
     }
@@ -28,11 +30,15 @@ MetricsModel.prototype.set = function(name, val) {
 
 MetricsModel.prototype.get = function(name) {
 
+    if(!name) {
+        return this.fields;
+    }
+
     if(_.isArray(name)) {
         return _.pick(this.fields, name);
     }
 
-    return fields[name];
+    return this.fields[name];
 };
 
 MetricsModel.prototype.toJSON = function() {

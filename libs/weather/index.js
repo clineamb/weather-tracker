@@ -10,12 +10,13 @@ var coll    = require('../collection')
 
 // FOR QUICK & DIRTY TESTING
 
-coll.addEntry("2015-09-01T16:00:00.000Z", { 'temperature': '27.1', 'dewPoint': '16.9' });
-coll.addEntry("2015-09-01T16:10:00.000Z", { 'temperature': '27.3' });
-coll.addEntry("2015-09-01T16:20:00.000Z", { 'temperature': '27.5', 'dewPoint': '17.1' });
-coll.addEntry("2015-09-01T16:30:00.000Z", { 'temperature': '27.4', 'dewPoint': '17.3' });
-coll.addEntry("2015-09-01T16:40:00.000Z", { 'temperature': '27.2' });
-coll.addEntry("2015-09-01T17:00:00.000Z", { 'temperature': '28.1', 'dewPoint': '18.3' });
+coll.addEntry("2015-09-01T16:00:00.000Z", validateBody({ 'temperature': '27.1', 'dewPoint': '16.9' }).parsed_body);
+coll.addEntry("2015-09-01T16:10:00.000Z", validateBody({ 'temperature': '27.3' }).parsed_body);
+
+coll.addEntry("2015-09-01T16:20:00.000Z", validateBody({ 'temperature': '27.5', 'dewPoint': '17.1' }).parsed_body);
+coll.addEntry("2015-09-01T16:30:00.000Z", validateBody({ 'temperature': '27.4', 'dewPoint': '17.3' }).parsed_body);
+coll.addEntry("2015-09-01T16:40:00.000Z", validateBody({ 'temperature': '27.2' }).parsed_body);
+coll.addEntry("2015-09-01T17:00:00.000Z", validateBody({ 'temperature': '28.1', 'dewPoint': '18.3' }).parsed_body);
 
 //  ========== ROUTE LOGIC
 
@@ -113,13 +114,82 @@ module.exports = {
 
         return res.sendStatus(204);
     },
-    stats: {
-        
+    getStats: function(req, res, next) {
+
+        var filtered, stats = [], query = req.query;
+
+        debug("getStats", query); // query param
+
+        filtered = coll.getDateRange(query.fromDateTime, query.toDateTime);
+
+        if(filtered.length <= 0) {
+            // res.status(200);
+            return res.json([])
+        }
+
+        // if only one stat
+        if(_.isString(query.stat)) {
+
+            stats.push(calculateStat(query.stat, query.metric, filtered));
+
+        // array of stats
+        } else if(_.isArray(query.stat)) {
+            stats = _.map(query.stat, function(st) {
+                return calculateStat(st, query.metric, filtered);
+            })
+        }
+
+        stats = _.compact(stats);
+
+        return res.json(stats);
     }
 };
 
 
 //  ========== HELPER FUNCTIONS
+
+function getMin(metric, fcoll) {
+    var value = null;
+}
+
+// returns array of stats
+function calculateStat(stat, metric, fcoll) {
+    var ret = {
+        'metric': metric,
+        'stat': stat,
+        'value': null
+    };
+
+
+    fcoll.each(function(item) {
+
+        if(ret.value === null) {
+            ret.value = item.get(metric);
+        } else {
+            switch(stat) {
+                case 'min':
+                   if(item.get(metric) < ret.value) {
+                        ret.value = item.get(metric);
+                    }
+                break;
+                case 'max':
+                    if(item.get(metric) >= ret.value) {
+                        ret.value = item.get(metric);
+                    }
+                break;
+                case 'average':
+                    ret.value = ret.value + item.get(metric);
+                break;
+            }
+        }
+    });
+
+    if(stat === 'average') {
+        ret.value = parseFloat((ret.value / fcoll.getLength()).toFixed(1));
+    }
+
+    return ret;
+}
 
 function isValidDate(dateStr) {
     var regEx = /^\d{4}-\d{2}-\d{2}$/;
@@ -151,7 +221,7 @@ function validateBody(body) {
     })
 
     return {
-        'is_valid': valid,
-        'parsed_body': fields
+        'is_valid':     valid,
+        'parsed_body':  fields
     }
 }
