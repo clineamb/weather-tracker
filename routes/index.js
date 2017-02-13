@@ -1,8 +1,7 @@
-var express     = require('express')
-,   router      = express.Router()
-,   _       = require('lodash')
+var express = require('express')
+,   router  = express.Router()
 ,   debug   = require('debug')('api:routes')
-,   weather     = require('../libs/weather')
+,   weather = require('../libs/weather')
 ;
 
 function sendBlankJson(req, res) {
@@ -11,9 +10,9 @@ function sendBlankJson(req, res) {
 
 function checkForTimestamp(req, res, next) {
 
-    debug("req.body", req.body);
+    debug(">> req.body", req.body);
 
-    if(_.isUndefined(req.body.timestamp)) {
+    if(!req.body.timestamp && !req.params.timestamp) {
         return res.sendStatus(400);
     }
 
@@ -26,19 +25,16 @@ router.route("/")
 
 router.route("/measurements")
     .get(sendBlankJson)
-    //  Feature: Add a measurement
     .post(
         checkForTimestamp,
-        weather.addMeasurement
+        weather.addMeasurement      //  Feature: Add a measurement
     )
 ;
 
 router.route("/measurements/:timestamp")
-    //  Feature: get a measurement
-    .get(weather.getMeasurement)
-    .put(function(req, res) {
-
-    })
+    .all(checkForTimestamp)
+    .get(weather.getMeasurement)    //  Feature: Get a measurement
+    .put(weather.updateMeasurement) //  Feature: Update measurement
     .patch(function(req, res) {
 
     })
